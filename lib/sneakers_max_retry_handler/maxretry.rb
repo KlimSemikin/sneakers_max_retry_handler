@@ -46,6 +46,8 @@ module SneakersMaxRetryHandler
       error_name = @opts[:retry_error_exchange] || "#{@worker_queue_name}-error"
       requeue_name = @opts[:retry_requeue_exchange] || "#{@worker_queue_name}-retry-requeue"
       retry_routing_key = @opts[:retry_routing_key] || "#"
+      retry_arguments = @opts[:retry_arguments] || {}
+      error_arguments = @opts[:error_arguments] || {}
 
       # Create the exchanges
       @retry_exchange, @error_exchange, @requeue_exchange = [retry_name, error_name, requeue_name].map do |name|
@@ -63,7 +65,8 @@ module SneakersMaxRetryHandler
                                     :durable => queue_durable?,
                                     :arguments => {
                                       :'x-dead-letter-exchange' => requeue_name,
-                                      :'x-message-ttl' => @opts[:retry_timeout] || 60000
+                                      :'x-message-ttl' => @opts[:retry_timeout] || 60000,
+                                      **retry_arguments
                                     })
       @retry_queue.bind(@retry_exchange, :routing_key => '#')
 
@@ -71,7 +74,8 @@ module SneakersMaxRetryHandler
         "#{log_prefix} creating queue=#{error_name}"
       end
       @error_queue = @channel.queue(error_name,
-                                    :durable => queue_durable?)
+                                    :durable => queue_durable?,
+                                    :arguments => error_arguments)
       @error_queue.bind(@error_exchange, :routing_key => '#')
 
       # Finally, bind the worker queue to our requeue exchange
