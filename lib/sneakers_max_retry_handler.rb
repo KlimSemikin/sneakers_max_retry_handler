@@ -1,0 +1,1 @@
+require 'sneakers_max_retry_handler/maxretry.rb'
