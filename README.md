@@ -24,12 +24,14 @@ $ bundle install
 
 # Use:
 
-initialize your worker with the Maxretry handler:
+initialize your worker with the Maxretry handler, pass arguments for retry and error queues:
 
 ```ruby
 class MyWorker
    from_queue 'audit_service', {
       handler: SneakersMaxRetryHandler::Maxretry,
+      retry_arguments: { 'x-queue-type': 'quorum' },
+      error_arguments: { 'x-queue-type': 'quorum' }
    }
 end
 ```
